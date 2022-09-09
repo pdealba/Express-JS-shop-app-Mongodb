@@ -1,13 +1,17 @@
 const Product = require("../models/product");
+const Order = require("../models/order");
 
 exports.getProducts = (req, res) => {
-  Product.find().then((products) => {
-    res.render("shop/product-list", {
-      prods: products,
-      path: "/products",
-      pageTitle: "All Products",
+  Product.find()
+    // .select('title price -_id')
+    // .populate('UserId', 'username')
+    .then((products) => {
+      res.render("shop/product-list", {
+        prods: products,
+        path: "/products",
+        pageTitle: "All Products",
+      });
     });
-  });
 };
 
 exports.getProduct = (req, res, next) => {
@@ -37,12 +41,13 @@ exports.getIndex = (req, res) => {
 
 exports.getCart = (req, res) => {
   req.user
-    .getCart()
-    .then((products) => {
+    .populate("cart.items.productId")
+    .then((user) => {
+      const products = user.cart.items;
       res.render("shop/cart", {
         path: "/cart",
         pageTitle: "Your Cart",
-        products: products,
+        products,
       });
     })
     .catch((err) => console.log(err));
@@ -71,18 +76,32 @@ exports.postCartDeleteProduct = (req, res) => {
 };
 
 exports.postOrder = (req, res) => {
-  let fetchedCart;
   req.user
-    .addOrder()
+    .populate("cart.items.productId")
+    .then((user) => {
+      const products = user.cart.items.map((i) => {
+        return { product: { ...i.productId._doc }, quantity: i.quantity };
+      });
+      const order = new Order({
+        products,
+        user: {
+          userId: req.user,
+          username: req.user.username,
+        },
+      });
+      return order.save();
+    })
     .then((result) => {
+      req.user.clearCart();
+    })
+    .then(() => {
       res.redirect("/orders");
     })
     .catch((err) => console.log(err));
 };
 
 exports.getOrders = (req, res) => {
-  req.user
-    .getOrder()
+  Order.find({ "user.userId": req.user._id })
     .then((orders) => {
       res.render("shop/orders", {
         path: "/orders",
