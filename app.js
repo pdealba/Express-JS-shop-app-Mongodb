@@ -14,6 +14,7 @@ app.set("view engine", "ejs");
 
 const admitRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
+const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -27,8 +28,24 @@ app.use((req, res, next) => {
     .catch((err) => console.log(err));
 });
 
+app.use((req, res, next) => {
+	const cookies = req.get('Cookie').split('; ');
+	res.locals.isAuthenticated = false;
+	cookies.forEach(cookie => {
+		const key = cookie.split('=')[0];
+		if (key === 'loggedIn') {
+			const value = cookie.split('=')[1];
+			if (value === 'true') {
+				res.locals.isAuthenticated = true;
+			}
+		}
+	});
+	next();
+});
+
 app.use("/admin", admitRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 
 app.use(errorController.get404);
 
