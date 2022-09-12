@@ -7,10 +7,15 @@ const errorController = require("./controllers/error");
 
 const mongoose = require("mongoose");
 const session = require('express-session');
+const connectSession = require('connect-mongodb-session')(session);
 
 const User = require("./models/user");
 
 const app = express();
+const store = new connectSession({
+  uri: "mongodb+srv://pedroDeAlba123:Paraiso22@cluster0.zfzxf.mongodb.net/shop",
+  collection: 'session'
+})
 
 app.set("view engine", "ejs");
 
@@ -20,31 +25,22 @@ const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(session({secret: 'my secret', resave: false, saveUninitialized: false}))
+app.use(session({secret: 'my secret', resave: false, saveUninitialized: false, store,}))
 
-app.use((req, res, next) => {
-  User.findById("631a5205cf02c1d8fa3c3e09")
-    .then((user) => {
-      req.user = user;
-      next();
-    })
-    .catch((err) => console.log(err));
-});
-
-app.use((req, res, next) => {
-	const cookies = req.get('Cookie').split('; ');
-	res.locals.isAuthenticated = false;
-	cookies.forEach(cookie => {
-		const key = cookie.split('=')[0];
-		if (key === 'loggedIn') {
-			const value = cookie.split('=')[1];
-			if (value === 'true') {
-				res.locals.isAuthenticated = true;
-			}
-		}
-	});
-	next();
-});
+// app.use((req, res, next) => {
+// 	const cookies = req.get('Cookie').split(';');
+// 	res.locals.isAuthenticated = false;
+// 	cookies.forEach(cookie => {
+// 		const key = cookie.split('=')[0];
+// 		if (key === 'loggedIn') {
+// 			const value = cookie.split('=')[1];
+// 			if (value === 'true') {
+// 				res.locals.isAuthenticated = true;
+// 			}
+// 		}
+// 	});
+// 	next();
+// });
 
 app.use("/admin", admitRoutes);
 app.use(shopRoutes);
