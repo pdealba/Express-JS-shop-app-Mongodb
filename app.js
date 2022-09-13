@@ -57,16 +57,6 @@ mongoose
     "mongodb+srv://pedroDeAlba123:Paraiso22@cluster0.zfzxf.mongodb.net/shop?retryWrites=true&w=majority"
   )
   .then((result) => {
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          username: "Pedro",
-          email: "pedro@test.com",
-          cart: { items: [] },
-        });
-        user.save();
-      }
-    });
     app.listen(3000);
   })
   .catch((err) => console.log(err));
