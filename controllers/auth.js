@@ -19,15 +19,15 @@ exports.postLogin = (req, res) => {
         return res.redirect("/login");
       }
       bcryptjs.compare(password, user.password).then((result) => {
-        if (!result) {
-          return res.redirect("/login");
+        if (result) {
+          req.session.isLoggedIn = true;
+          req.session.userData = user;
+          return req.session.save((err) => {
+            console.log(err);
+            res.redirect("/");
+          });
         }
-        req.session.isLoggedIn = true;
-        req.session.userData = user;
-        return req.session.save((err) => {
-          console.log(err);
-          res.redirect("/");
-        });
+        res.redirect("/login");
       });
     })
     .catch((err) => console.log(err));
