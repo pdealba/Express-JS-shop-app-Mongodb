@@ -102,7 +102,7 @@ exports.postSignup = (req, res, next) => {
           res.redirect("/login");
           return transporter.sendMail({
             to: email,
-            from: "pedrodealbaalegre@gmail.com",
+            from: "node@shop.com",
             subject: "Signup completed!",
             html: "<h1>You have succesfully created an account!</h1>",
           });
@@ -146,7 +146,7 @@ exports.postReset = (req, res) => {
         return user.save().then((result) => {
           res.redirect("/");
           transporter.sendMail({
-            from: "pedrodealbaalegre@gmail.com",
+            from: "node@shop.com",
             to: req.body.email,
             subject: "Reset Password",
             html: `
