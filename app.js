@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const path = require("path");
 
 const express = require("express");
@@ -13,7 +15,7 @@ const User = require("./models/user");
 
 const app = express();
 const store = new connectSession({
-  uri: "mongodb+srv://pedroDeAlba123:Paraiso22@cluster0.zfzxf.mongodb.net/shop",
+  uri: process.env.SHOP_URL_LINK,
   collection: "session",
 });''
 const csrfProtection = csrf();
@@ -62,9 +64,7 @@ app.use(authRoutes);
 app.use(errorController.get404);
 
 mongoose
-  .connect(
-    "mongodb+srv://pedroDeAlba123:Paraiso22@cluster0.zfzxf.mongodb.net/shop?retryWrites=true&w=majority"
-  )
+  .connect(process.env.SHOP_URL_LINK)
   .then((result) => {
     app.listen(3000);
   })
