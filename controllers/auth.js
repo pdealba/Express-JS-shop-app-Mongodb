@@ -67,14 +67,14 @@ exports.postLogin = (req, res) => {
         pageTitle: 'Login',
         errorMessage: 'Invalid email or password.',
         oldInput: {
-          email: email,
-          password: password
+          email,
+          password,
         },
         validationErrors: []
       });
     }
 
-    bcrypt
+    bcryptjs
     .compare(password, user.password)
     .then(doMatch => {
       if (doMatch) {
@@ -90,8 +90,8 @@ exports.postLogin = (req, res) => {
         pageTitle: 'Login',
         errorMessage: 'Invalid email or password.',
         oldInput: {
-          email: email,
-          password: password
+          email,
+          password,
         },
         validationErrors: []
       });

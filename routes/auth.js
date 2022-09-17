@@ -11,18 +11,8 @@ router.get("/login", authController.getLogin);
 router.post(
   "/login",
   [
-    body("email")
-      .isEmail()
-      .withMessage('Please enter a valid email')
-      .custom((value, { req }) => {
-        return User.findOne({ email: value }).then((userDoc) => {
-          if (!userDoc) {
-            return Promise.reject("This email does not exist!");
-          }
-        });
-      }),
-    body("password", "Invalid password")
-      .isLength({ min: 5 }),
+    body("email").isEmail().withMessage("Please enter a valid email"),
+    body("password", "Invalid password").isLength({ min: 5 }),
   ],
   authController.postLogin
 );
