@@ -11,8 +11,8 @@ router.get("/login", authController.getLogin);
 router.post(
   "/login",
   [
-    body("email").isEmail().withMessage("Please enter a valid email"),
-    body("password", "Invalid password").isLength({ min: 5 }),
+    body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
+    body("password", "Invalid password").isLength({ min: 5 }).trim(),
   ],
   authController.postLogin
 );
@@ -33,16 +33,20 @@ router.post(
             return Promise.reject("This E-mail is already being used!");
           }
         });
-      }),
+      })
+      .normalizeEmail(),
     body("password")
       .isLength({ min: 5 })
-      .withMessage("Password must be at least 5 characters long"),
-    body("confirmPassword").custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw Error("Passwords do not match!");
-      }
-      return true;
-    }),
+      .withMessage("Password must be at least 5 characters long")
+      .trim(),
+    body("confirmPassword")
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw Error("Passwords do not match!");
+        }
+        return true;
+      })
+      .trim(),
   ],
   authController.postSignup
 );
