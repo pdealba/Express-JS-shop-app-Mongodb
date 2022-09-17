@@ -25,15 +25,22 @@ exports.getLogin = (req, res) => {
   } else {
     message = undefined;
   }
+
   res.render("auth/login", {
     pageTitle: "Login",
     path: "/login",
     isAuthenticated: req.session.isLoggedIn,
     errorMessage: message,
+    oldInput: {
+      email: '',
+      password: '',
+    },
+    validationErrors: [],
   });
 };
 
 exports.postLogin = (req, res) => {
+  const email = req.body.email;
   const password = req.body.password;
 
   const errors = validationResult(req);
@@ -44,21 +51,57 @@ exports.postLogin = (req, res) => {
       path: "/login",
       isAuthenticated: req.session.isLoggedIn,
       errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email,
+        password,
+      },
+      validationErrors: errors.array(),
     });
-  }
+  }  
 
-  bcryptjs.compare(password, user.password).then((result) => {
-    if (result) {
-      req.session.isLoggedIn = true;
-      req.session.userData = user;
-      return req.session.save((err) => {
-        console.log(err);
-        res.redirect("/");
+  User.findOne({ email: email })
+  .then(user => {
+    if (!user) {
+      return res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: 'Invalid email or password.',
+        oldInput: {
+          email: email,
+          password: password
+        },
+        validationErrors: []
       });
     }
-    // req.flash("error", "Invalid email or password.");
-    // res.redirect("/login");
-  });
+
+    bcrypt
+    .compare(password, user.password)
+    .then(doMatch => {
+      if (doMatch) {
+        req.session.isLoggedIn = true;
+        req.session.user = user;
+        return req.session.save(err => {
+          console.log(err);
+          res.redirect('/');
+        });
+      }
+      return res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: 'Invalid email or password.',
+        oldInput: {
+          email: email,
+          password: password
+        },
+        validationErrors: []
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/login');
+    });
+})
+.catch(err => console.log(err));
 };
 
 exports.postLogout = (req, res) => {
@@ -80,6 +123,12 @@ exports.getSignup = (req, res, next) => {
     pageTitle: "Signup",
     isAuthenticated: false,
     errorMessage: message,
+    oldInput: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validationErrors: [],
   });
 };
 
@@ -95,6 +144,12 @@ exports.postSignup = (req, res, next) => {
       pageTitle: "Signup",
       isAuthenticated: false,
       errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email,
+        password,
+        confirmPassword: req.body.confirmPassword,
+      },
+      validationErrors: errors.array(),
     });
   }
 
